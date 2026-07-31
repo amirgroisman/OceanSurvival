@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ocean Feeding Frenzy - Eat Smaller Fish & Grow!</title>
+  <meta name="description" content="A cute, action-packed 2D ocean browser game where you control a small orange fish, eat smaller sea creatures, grow huge, and become the King of the Ocean!">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <!-- Main Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Top HUD Overlay -->
+    <div id="hud" class="hidden">
+      <div class="hud-card hud-left">
+        <div class="hud-label">PLAYER SIZE</div>
+        <div class="hud-value-container">
+          <span id="playerSizeVal">1.0</span>
+          <span class="hud-unit">cm</span>
+        </div>
+        <div class="size-bar-bg">
+          <div id="sizeBarFill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="hud-card hud-center">
+        <div class="hud-label">TIME SURVIVED</div>
+        <div id="timeSurvivedVal" class="hud-value">00:00</div>
+      </div>
+
+      <div class="hud-card hud-right">
+        <div class="hud-label">FISH EATEN</div>
+        <div id="fishEatenVal" class="hud-value">0</div>
+        <div id="comboBadge" class="combo-badge hidden">2x COMBO!</div>
+      </div>
+
+      <!-- Quick Audio Controls -->
+      <button id="quickMuteBtn" class="hud-btn" title="Toggle Sound">🔊</button>
+      <button id="pauseBtn" class="hud-btn" title="Pause Game">⏸</button>
+    </div>
+
+    <!-- Floating Score Popups Container -->
+    <div id="popupContainer"></div>
+
+    <!-- Start Screen Modal -->
+    <div id="startScreen" class="overlay-screen active">
+      <div class="modal-card">
+        <div class="logo-container">
+          <div class="fish-icon-hero">🐠</div>
+          <h1 class="game-title">OCEAN<br><span class="highlight">FEEDING FRENZY</span></h1>
+        </div>
+
+        <p class="tagline">Eat smaller fish. Avoid bigger predators. Become King of the Ocean!</p>
+
+        <div class="instructions-box">
+          <div class="instruction-item">
+            <span class="key-badge">WASD</span> or <span class="key-badge">ARROWS</span>
+            <span class="inst-text">Move freely in all directions</span>
+          </div>
+          <div class="instruction-item">
+            <span class="icon-indicator">🟢</span>
+            <span class="inst-text">Eat fish smaller than you to grow</span>
+          </div>
+          <div class="instruction-item">
+            <span class="icon-indicator">🔴</span>
+            <span class="inst-text">Avoid larger fish or GET EATEN!</span>
+          </div>
+          <div class="instruction-item">
+            <span class="icon-indicator">⭐</span>
+            <span class="inst-text">Catch Golden Fish for extra growth & combo points</span>
+          </div>
+        </div>
+
+        <button id="playBtn" class="btn primary-btn pulse-anim">PLAY NOW 🌊</button>
+
+        <div class="high-score-tag">
+          BEST SIZE: <span id="bestSizeVal">0.0</span> cm &nbsp;|&nbsp; HIGH SCORE: <span id="highScoreVal">0</span> pts
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause Screen Modal -->
+    <div id="pauseScreen" class="overlay-screen hidden">
+      <div class="modal-card small-card">
+        <h2>GAME PAUSED</h2>
+        <div class="audio-controls">
+          <div class="control-row">
+            <label for="masterVolume">Master Volume</label>
+            <input type="range" id="masterVolume" min="0" max="1" step="0.05" value="0.7">
+          </div>
+          <div class="control-row">
+            <label for="sfxVolume">SFX Volume</label>
+            <input type="range" id="sfxVolume" min="0" max="1" step="0.05" value="0.8">
+          </div>
+          <div class="control-row">
+            <label for="musicVolume">Music Volume</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.5">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="resumeBtn" class="btn primary-btn">RESUME ▶</button>
+          <button id="restartPauseBtn" class="btn secondary-btn">RESTART 🔄</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Screen Modal -->
+    <div id="gameOverScreen" class="overlay-screen hidden">
+      <div class="modal-card">
+        <div class="game-over-header">
+          <div class="skull-icon">💥</div>
+          <h2 class="danger-title">GAME OVER</h2>
+          <p class="defeat-subtitle">You were gobbled up by a larger fish!</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-title">FINAL SIZE</div>
+            <div id="finalSizeVal" class="stat-val">1.2 cm</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">FISH EATEN</div>
+            <div id="finalFishEatenVal" class="stat-val">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">TIME SURVIVED</div>
+            <div id="finalTimeVal" class="stat-val">00:00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">TOTAL SCORE</div>
+            <div id="finalScoreVal" class="stat-val">0</div>
+          </div>
+        </div>
+
+        <div id="newHighScoreNotice" class="new-high-score hidden">🎉 NEW HIGH SCORE! 🎉</div>
+
+        <button id="restartBtn" class="btn primary-btn pulse-anim">TRY AGAIN 🔄</button>
+      </div>
+    </div>
+
+    <!-- Victory Screen Modal -->
+    <div id="victoryScreen" class="overlay-screen hidden">
+      <div class="modal-card victory-card">
+        <div class="crown-icon">👑</div>
+        <h1 class="victory-title">YOU GREW INTO THE KING OF THE OCEAN!</h1>
+        <p class="victory-subtitle">No creature in the sea can challenge your size!</p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-title">MAX SIZE REACHED</div>
+            <div id="victorySizeVal" class="stat-val">10.0 cm</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">TOTAL EATEN</div>
+            <div id="victoryFishEatenVal" class="stat-val">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">VICTORY TIME</div>
+            <div id="victoryTimeVal" class="stat-val">00:00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">VICTORY SCORE</div>
+            <div id="victoryScoreVal" class="stat-val">0</div>
+          </div>
+        </div>
+
+        <button id="victoryPlayAgainBtn" class="btn primary-btn pulse-anim">PLAY AGAIN 🌊</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Scripts -->
+  <script src="js/Utilities.js"></script>
+  <script src="js/Audio.js"></script>
+  <script src="js/Particles.js"></script>
+  <script src="js/Environment.js"></script>
+  <script src="js/Player.js"></script>
+  <script src="js/Fish.js"></script>
+  <script src="js/Spawner.js"></script>
+  <script src="js/Collision.js"></script>
+  <script src="js/UI.js"></script>
+  <script src="js/Game.js"></script>
+</body>
+</html>
