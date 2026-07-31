@@ -28,17 +28,68 @@ class UIManager {
     this.finalScoreVal = document.getElementById('finalScoreVal');
     this.newHighScoreNotice = document.getElementById('newHighScoreNotice');
 
+    // Victory Elements
     this.victorySizeVal = document.getElementById('victorySizeVal');
     this.victoryFishEatenVal = document.getElementById('victoryFishEatenVal');
     this.victoryTimeVal = document.getElementById('victoryTimeVal');
     this.victoryScoreVal = document.getElementById('victoryScoreVal');
 
+    // Joystick Overlay Element
+    this.joystickContainer = document.getElementById('joystickContainer');
+
     // Combo system state
     this.comboCount = 0;
     this.comboTimer = 0;
 
-    // Load High Scores from Local Storage
+    // Touch Control Mode ('joystick', 'touchAnywhere', 'drag')
+    this.touchControlMode = localStorage.getItem('off_touch_control_mode') || 'joystick';
+
+    // Load High Scores & Settings
     this.loadHighScores();
+    this.initSchemeSelectorButtons();
+  }
+
+  initSchemeSelectorButtons() {
+    const schemeButtons = document.querySelectorAll('.scheme-btn');
+    schemeButtons.forEach(btn => {
+      if (btn.getAttribute('data-scheme') === this.touchControlMode) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+
+      btn.addEventListener('click', (e) => {
+        const mode = e.currentTarget.getAttribute('data-scheme');
+        this.setTouchControlMode(mode);
+      });
+    });
+  }
+
+  setTouchControlMode(mode) {
+    this.touchControlMode = mode;
+    localStorage.setItem('off_touch_control_mode', mode);
+
+    // Update active class on all selector buttons across modals
+    const schemeButtons = document.querySelectorAll('.scheme-btn');
+    schemeButtons.forEach(btn => {
+      if (btn.getAttribute('data-scheme') === mode) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    this.updateJoystickVisibility();
+  }
+
+  updateJoystickVisibility(isPlaying = false) {
+    if (this.joystickContainer) {
+      if (isPlaying && this.touchControlMode === 'joystick') {
+        this.joystickContainer.classList.remove('hidden');
+      } else {
+        this.joystickContainer.classList.add('hidden');
+      }
+    }
   }
 
   loadHighScores() {
@@ -134,6 +185,7 @@ class UIManager {
     this.pauseScreen.classList.add('hidden');
     this.gameOverScreen.classList.add('hidden');
     this.victoryScreen.classList.add('hidden');
+    this.updateJoystickVisibility(false);
   }
 
   showHUD() {
@@ -143,16 +195,19 @@ class UIManager {
     this.pauseScreen.classList.add('hidden');
     this.gameOverScreen.classList.add('hidden');
     this.victoryScreen.classList.add('hidden');
+    this.updateJoystickVisibility(true);
   }
 
   showPauseScreen() {
     this.pauseScreen.classList.add('active');
     this.pauseScreen.classList.remove('hidden');
+    this.updateJoystickVisibility(false);
   }
 
   hidePauseScreen() {
     this.pauseScreen.classList.remove('active');
     this.pauseScreen.classList.add('hidden');
+    this.updateJoystickVisibility(true);
   }
 
   showGameOver(size, fishEaten, timeSurvived, score) {
@@ -173,6 +228,7 @@ class UIManager {
 
     this.gameOverScreen.classList.add('active');
     this.gameOverScreen.classList.remove('hidden');
+    this.updateJoystickVisibility(false);
   }
 
   showVictory(size, fishEaten, timeSurvived, score) {
@@ -185,5 +241,6 @@ class UIManager {
 
     this.victoryScreen.classList.add('active');
     this.victoryScreen.classList.remove('hidden');
+    this.updateJoystickVisibility(false);
   }
 }

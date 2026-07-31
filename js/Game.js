@@ -57,6 +57,10 @@ class Game {
   }
 
   initEventListeners() {
+    this.joystickVector = { x: 0, y: 0 };
+    this.isCanvasTouching = false;
+    this.touchPosition = { x: 0, y: 0 };
+
     // Keyboard inputs
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyP' || e.code === 'Escape') {
@@ -73,32 +77,77 @@ class Game {
       }
     });
 
-    // Touch / Pointer controls for mobile
-    let touchStartX = 0;
-    let touchStartY = 0;
+    // --- VIRTUAL JOYSTICK (Option 1) ---
+    const joystickContainer = document.getElementById('joystickContainer');
+    const joystickStick = document.getElementById('joystickStick');
+    let joystickActive = false;
+    let baseCenterX = 0;
+    let baseCenterY = 0;
 
+    const handleJoystickStart = (e) => {
+      e.stopPropagation();
+      audioManager.init();
+      joystickActive = true;
+      const rect = joystickContainer.getBoundingClientRect();
+      baseCenterX = rect.left + rect.width / 2;
+      baseCenterY = rect.top + rect.height / 2;
+      handleJoystickMove(e);
+    };
+
+    const handleJoystickMove = (e) => {
+      if (!joystickActive) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const dx = clientX - baseCenterX;
+      const dy = clientY - baseCenterY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxR = 45;
+
+      const clampedR = Math.min(dist, maxR);
+      const angle = Math.atan2(dy, dx);
+
+      const stickX = Math.cos(angle) * clampedR;
+      const stickY = Math.sin(angle) * clampedR;
+
+      joystickStick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+
+      this.joystickVector = {
+        x: stickX / maxR,
+        y: stickY / maxR
+      };
+    };
+
+    const handleJoystickEnd = () => {
+      joystickActive = false;
+      joystickStick.style.transform = 'translate(-50%, -50%)';
+      this.joystickVector = { x: 0, y: 0 };
+    };
+
+    joystickContainer.addEventListener('pointerdown', handleJoystickStart);
+    window.addEventListener('pointermove', handleJoystickMove);
+    window.addEventListener('pointerup', handleJoystickEnd);
+    window.addEventListener('pointercancel', handleJoystickEnd);
+
+    // --- CANVAS TOUCH INPUT (Option 2: Touch Anywhere & Option 3: Drag Fish) ---
     this.canvas.addEventListener('pointerdown', (e) => {
       audioManager.init();
-      touchStartX = e.clientX;
-      touchStartY = e.clientY;
+      this.isCanvasTouching = true;
+      this.touchPosition = { x: e.clientX, y: e.clientY };
     });
 
     this.canvas.addEventListener('pointermove', (e) => {
-      if (this.state !== GameState.PLAYING || !(e.buttons & 1)) return;
-      const dx = e.clientX - touchStartX;
-      const dy = e.clientY - touchStartY;
-      
-      this.player.keys.left = dx < -15;
-      this.player.keys.right = dx > 15;
-      this.player.keys.up = dy < -15;
-      this.player.keys.down = dy > 15;
+      if (this.isCanvasTouching) {
+        this.touchPosition = { x: e.clientX, y: e.clientY };
+      }
     });
 
     this.canvas.addEventListener('pointerup', () => {
-      this.player.keys.left = false;
-      this.player.keys.right = false;
-      this.player.keys.up = false;
-      this.player.keys.down = false;
+      this.isCanvasTouching = false;
+    });
+
+    this.canvas.addEventListener('pointercancel', () => {
+      this.isCanvasTouching = false;
     });
 
     // Start Screen Play Button
@@ -199,6 +248,22 @@ class Game {
 
     if (this.state === GameState.PLAYING) {
       this.timeSurvived += dt;
+
+      // Handle active touch control scheme inputs
+      const mode = this.ui.touchControlMode;
+      if (mode === 'joystick') {
+        if (this.joystickVector.x !== 0 || this.joystickVector.y !== 0) {
+          this.player.setJoystickInput(this.joystickVector.x, this.joystickVector.y);
+        }
+      } else if (mode === 'touchAnywhere') {
+        if (this.isCanvasTouching) {
+          this.player.swimTowards(this.touchPosition.x, this.touchPosition.y);
+        }
+      } else if (mode === 'drag') {
+        if (this.isCanvasTouching) {
+          this.player.dragTo(this.touchPosition.x, this.touchPosition.y);
+        }
+      }
 
       // Update Player & Spawner
       this.player.update(dt, this.particles);

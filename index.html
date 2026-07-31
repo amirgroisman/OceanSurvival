@@ -18,6 +18,13 @@
     <!-- Main Game Canvas -->
     <canvas id="gameCanvas"></canvas>
 
+    <!-- Virtual Joystick Overlay Container -->
+    <div id="joystickContainer" class="joystick-container hidden">
+      <div id="joystickBase" class="joystick-base">
+        <div id="joystickStick" class="joystick-stick"></div>
+      </div>
+    </div>
+
     <!-- Top HUD Overlay -->
     <div id="hud" class="hidden">
       <div class="hud-card hud-left">
@@ -63,7 +70,7 @@
         <div class="instructions-box">
           <div class="instruction-item">
             <span class="key-badge">WASD</span> or <span class="key-badge">ARROWS</span>
-            <span class="inst-text">Move freely in all directions</span>
+            <span class="inst-text">Move freely (or use Touch Controls)</span>
           </div>
           <div class="instruction-item">
             <span class="icon-indicator">🟢</span>
@@ -79,6 +86,16 @@
           </div>
         </div>
 
+        <!-- Touch Controls Scheme Selector -->
+        <div class="control-scheme-selector">
+          <label class="setting-label">📱 TOUCH CONTROL SCHEME</label>
+          <div class="scheme-options">
+            <button class="scheme-btn active" data-scheme="joystick">🕹️ Joystick</button>
+            <button class="scheme-btn" data-scheme="touchAnywhere">👆 Touch Anywhere</button>
+            <button class="scheme-btn" data-scheme="drag">🫳 Drag Fish</button>
+          </div>
+        </div>
+
         <button id="playBtn" class="btn primary-btn pulse-anim">PLAY NOW 🌊</button>
 
         <div class="high-score-tag">
@@ -91,6 +108,16 @@
     <div id="pauseScreen" class="overlay-screen hidden">
       <div class="modal-card small-card">
         <h2>GAME PAUSED</h2>
+
+        <div class="control-scheme-selector margin-v">
+          <label class="setting-label">📱 TOUCH CONTROLS</label>
+          <div class="scheme-options">
+            <button class="scheme-btn active" data-scheme="joystick">Joystick</button>
+            <button class="scheme-btn" data-scheme="touchAnywhere">Touch</button>
+            <button class="scheme-btn" data-scheme="drag">Drag</button>
+          </div>
+        </div>
+
         <div class="audio-controls">
           <div class="control-row">
             <label for="masterVolume">Master Volume</label>
@@ -109,6 +136,8 @@
           <button id="resumeBtn" class="btn primary-btn">RESUME ▶</button>
           <button id="restartPauseBtn" class="btn secondary-btn">RESTART 🔄</button>
         </div>
+      </div>
+    </div>
       </div>
     </div>
 

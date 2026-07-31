@@ -78,6 +78,49 @@ class Player {
     if (code === 'KeyD' || code === 'ArrowRight') this.keys.right = false;
   }
 
+  // --- TOUCH INPUT HELPERS ---
+  // Option 1: Set normalized joystick direction vector (-1 to 1 for x and y)
+  setJoystickInput(dx, dy) {
+    if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
+      this.vx += dx * this.acceleration * 1.4;
+      this.vy += dy * this.acceleration * 1.4;
+      if (dx < -0.1) this.facing = -1;
+      if (dx > 0.1) this.facing = 1;
+    }
+  }
+
+  // Option 2: Swim continuously towards target point (Touch Anywhere)
+  swimTowards(targetX, targetY) {
+    const dx = targetX - this.x;
+    const dy = targetY - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist > 10) {
+      const dirX = dx / dist;
+      const dirY = dy / dist;
+      this.vx += dirX * this.acceleration * 1.2;
+      this.vy += dirY * this.acceleration * 1.2;
+      if (dirX < -0.1) this.facing = -1;
+      if (dirX > 0.1) this.facing = 1;
+    }
+  }
+
+  // Option 3: Direct Drag (smoothly lerps fish to target finger position)
+  dragTo(targetX, targetY) {
+    const prevX = this.x;
+    const lerpSpeed = 0.25; // Smooth position follow
+    this.x = Utils.lerp(this.x, targetX, lerpSpeed);
+    this.y = Utils.lerp(this.y, targetY, lerpSpeed);
+
+    const deltaX = this.x - prevX;
+    if (deltaX < -0.5) this.facing = -1;
+    if (deltaX > 0.5) this.facing = 1;
+
+    // Set virtual velocity for tail animation
+    this.vx = deltaX;
+    this.vy = (targetY - this.y) * 0.1;
+  }
+
   grow(amount) {
     // Diminishing growth formula so player doesn't scale infinitely huge instantly
     const growthFactor = 0.35 / (1 + (this.size - 1) * 0.15);
