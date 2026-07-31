@@ -48,10 +48,17 @@ class Game {
   }
 
   resizeCanvas() {
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2.5); // High DPI scaling for crisp mobile displays
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+
+    // Set canvas internal resolution to high-DPI buffer
+    this.canvas.width = Math.floor(this.width * this.dpr);
+    this.canvas.height = Math.floor(this.height * this.dpr);
+
+    // Set CSS display size to logical screen dimensions
+    this.canvas.style.width = `${this.width}px`;
+    this.canvas.style.height = `${this.height}px`;
 
     if (this.environment) this.environment.resize(this.width, this.height);
   }
@@ -318,6 +325,11 @@ class Game {
   }
 
   draw() {
+    this.ctx.save();
+    if (this.dpr) {
+      this.ctx.scale(this.dpr, this.dpr);
+    }
+
     this.ctx.clearRect(0, 0, this.width, this.height);
 
     // 1. Draw Ocean Environment
@@ -331,6 +343,8 @@ class Game {
 
     // 4. Draw Particle System
     this.particles.draw(this.ctx);
+
+    this.ctx.restore();
   }
 }
 
