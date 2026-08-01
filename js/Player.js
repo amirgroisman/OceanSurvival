@@ -134,23 +134,26 @@ class Player {
   }
 
   update(dt, particleSystem) {
+    // Frame-rate independent time step (normalized to 60fps baseline)
+    const step = dt * 60;
+
     if (this.isDead) {
-      this.deathTimer += 0.016;
-      this.rotation += 0.05;
-      this.vy = -0.5; // Float upwards dead
-      this.y += this.vy;
+      this.deathTimer += dt;
+      this.rotation += 0.05 * step;
+      this.vy = -0.5;
+      this.y += this.vy * step;
       return;
     }
 
-    // Apply acceleration based on input keys
-    if (this.keys.up) this.vy -= this.acceleration;
-    if (this.keys.down) this.vy += this.acceleration;
+    // Apply acceleration based on input keys (dt-based)
+    if (this.keys.up) this.vy -= this.acceleration * step;
+    if (this.keys.down) this.vy += this.acceleration * step;
     if (this.keys.left) {
-      this.vx -= this.acceleration;
+      this.vx -= this.acceleration * step;
       this.facing = -1;
     }
     if (this.keys.right) {
-      this.vx += this.acceleration;
+      this.vx += this.acceleration * step;
       this.facing = 1;
     }
 
@@ -161,28 +164,30 @@ class Player {
       this.vy = (this.vy / speed) * this.maxSpeed;
     }
 
-    // Apply smooth friction
-    this.vx *= this.friction;
-    this.vy *= this.friction;
+    // Apply smooth friction (dt-based using power for frame-independent damping)
+    const frictionFactor = Math.pow(this.friction, step);
+    this.vx *= frictionFactor;
+    this.vy *= frictionFactor;
 
-    // Update position
-    this.x += this.vx;
-    this.y += this.vy;
+    // Update position (dt-based)
+    this.x += this.vx * step;
+    this.y += this.vy * step;
 
     // Screen Boundary Clamping
     this.x = Utils.clamp(this.x, this.radius, this.canvasWidth - this.radius);
     this.y = Utils.clamp(this.y, this.radius, this.canvasHeight - this.radius);
 
-    // Smooth radius interpolation towards targetRadius
-    this.radius = Utils.lerp(this.radius, this.targetRadius, 0.1);
+    // Smooth radius interpolation towards targetRadius (dt-based)
+    const lerpAmt = 1 - Math.pow(1 - 0.1, step);
+    this.radius = Utils.lerp(this.radius, this.targetRadius, lerpAmt);
 
-    // Tail wagging animation tied to velocity
+    // Tail wagging animation tied to velocity (dt-based)
     const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-    this.tailAngle += (0.1 + currentSpeed * 0.08);
+    this.tailAngle += (0.1 + currentSpeed * 0.08) * step;
 
-    // Mouth eating timer
+    // Mouth eating timer (dt-based)
     if (this.mouthOpenTimer > 0) {
-      this.mouthOpenTimer -= 0.016;
+      this.mouthOpenTimer -= dt;
     }
 
     // Emit trail bubbles when moving fast

@@ -86,15 +86,18 @@ class Fish {
   }
 
   update(dt, particleSystem) {
-    // Strictly horizontal movement
-    this.x += this.speed * this.direction;
+    // Frame-rate independent time step (normalized to 60fps baseline)
+    const step = dt * 60;
 
-    // Tail swimming animation
-    this.tailAngle += this.tailSpeed;
+    // Strictly horizontal movement (dt-based)
+    this.x += this.speed * this.direction * step;
+
+    // Tail swimming animation (dt-based)
+    this.tailAngle += this.tailSpeed * step;
 
     // Spawn sparkles if Golden Fish
     if (this.isGolden && particleSystem) {
-      this.sparkleTimer += 0.016;
+      this.sparkleTimer += dt;
       if (this.sparkleTimer > 0.1) {
         particleSystem.spawnGoldenSparkles(this.x, this.y);
         this.sparkleTimer = 0;
