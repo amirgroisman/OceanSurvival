@@ -41,54 +41,16 @@ class UIManager {
     this.comboCount = 0;
     this.comboTimer = 0;
 
-    // Touch Control Mode ('joystick', 'touchAnywhere', 'drag')
-    this.touchControlMode = localStorage.getItem('off_touch_control_mode') || 'joystick';
+    // Touch Control Mode
+    this.touchControlMode = 'drag';
 
     // Load High Scores & Settings
     this.loadHighScores();
-    this.initSchemeSelectorButtons();
-  }
-
-  initSchemeSelectorButtons() {
-    const schemeButtons = document.querySelectorAll('.scheme-btn');
-    schemeButtons.forEach(btn => {
-      if (btn.getAttribute('data-scheme') === this.touchControlMode) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-
-      btn.addEventListener('click', (e) => {
-        const mode = e.currentTarget.getAttribute('data-scheme');
-        this.setTouchControlMode(mode);
-      });
-    });
-  }
-
-  setTouchControlMode(mode) {
-    this.touchControlMode = mode;
-    localStorage.setItem('off_touch_control_mode', mode);
-
-    // Update active class on all selector buttons across modals
-    const schemeButtons = document.querySelectorAll('.scheme-btn');
-    schemeButtons.forEach(btn => {
-      if (btn.getAttribute('data-scheme') === mode) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    this.updateJoystickVisibility();
   }
 
   updateJoystickVisibility(isPlaying = false) {
     if (this.joystickContainer) {
-      if (isPlaying && this.touchControlMode === 'joystick') {
-        this.joystickContainer.classList.remove('hidden');
-      } else {
-        this.joystickContainer.classList.add('hidden');
-      }
+      this.joystickContainer.classList.add('hidden');
     }
   }
 
